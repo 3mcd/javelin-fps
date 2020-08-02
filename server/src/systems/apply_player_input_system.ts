@@ -24,7 +24,7 @@ export const applyPlayerInputSystem = (world: World) => {
     const input = inputs.shift() || lastInput
 
     if (input) {
-      dispatchPhysicsCommandsFromInput(input, actorEntity, physicsTopic)
+      dispatchPhysicsCommandsFromInput(input, actorEntity, physicsTopic, world)
       // Note: we don't obtain a mutable reference here because we don't want
       // to send a reliable update for Player components every time we process
       // an input on the server. This should be implemented better in the future!

@@ -13,7 +13,14 @@ export type Accelerate = [
   number,
   number,
 ]
-export type Rotate = [PhysicsCommandType.Rotate, number, number, number]
+export type Rotate = [
+  PhysicsCommandType.Rotate,
+  number,
+  number,
+  number,
+  number,
+  number,
+]
 
 export type PhysicsCommand = Accelerate | Rotate
 
@@ -42,6 +49,23 @@ export const accelerate = (
   command[2] = vx
   command[3] = vy
   command[4] = vz
+  return command
+}
+
+export const rotate = (
+  entity: number,
+  qx: number,
+  qy: number,
+  qz: number,
+  qw: number,
+): Rotate => {
+  const command = physicsCommandPool.retain() as Rotate
+  command[0] = PhysicsCommandType.Rotate
+  command[1] = entity
+  command[2] = qx
+  command[3] = qy
+  command[4] = qz
+  command[5] = qw
   return command
 }
 

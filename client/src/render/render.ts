@@ -213,7 +213,8 @@ export function redraw(world: World, clock: Clock) {
   // }
 
   if (localPlayerObject) {
-    cameraContainer.position.lerp(localPlayerObject.position, alpha)
+    cameraContainer.position.copy(localPlayerObject.position)
+    cameraContainer.quaternion.copy(localPlayerObject.quaternion)
   }
 
   renderer.render(scene, camera)

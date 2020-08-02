@@ -82,6 +82,9 @@ export const inputSamplePool = createStackPool(
   50,
 )
 
+let prevPointerX = 0
+let prevPointerY = 0
+
 export const createSampleInputSystem = (connection: Connection) => (
   world: World,
   clock: Clock,
@@ -97,6 +100,9 @@ export const createSampleInputSystem = (connection: Connection) => (
   const { x, y } = controls.pointer.query()
   const input: number[] = inputSamplePool.retain()
 
+  input[5] = prevPointerX
+  input[6] = prevPointerY
+
   detect(controls.up, 0, input)
   detect(controls.right, 1, input)
   detect(controls.down, 2, input)
@@ -104,8 +110,11 @@ export const createSampleInputSystem = (connection: Connection) => (
   detect(controls.jump, 4, input)
 
   if (mouse.isPointerLocked()) {
-    input[5] -= x * SENSITIVITY
-    input[6] = Math.max(-PI_2, Math.min(PI_2, input[6] - y * SENSITIVITY))
+    prevPointerX = input[5] - x * SENSITIVITY
+    prevPointerY = Math.max(-PI_2, Math.min(PI_2, input[6] - y * SENSITIVITY))
+
+    input[5] = prevPointerX
+    input[6] = prevPointerY
   }
 
   input[7] = clock.tick
@@ -114,6 +123,7 @@ export const createSampleInputSystem = (connection: Connection) => (
     input,
     clientData.playerEntityLocal,
     physicsTopic,
+    world,
   )
 
   inputBuffer.inputs.push(input)

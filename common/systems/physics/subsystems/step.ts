@@ -1,5 +1,5 @@
 import { committed, query, select, tag, World } from "@javelin/ecs"
-import { Body as BodyComponent } from "../../../components"
+import { Body as BodyComponent, MovementState } from "../../../components"
 import { getServerDetails } from "../../../queries"
 import { Tag } from "../../../tag"
 import {
@@ -8,8 +8,12 @@ import {
   physicsCommandPool,
 } from "../../../topics"
 import { bodiesByEntity, simulation } from "../simulation"
+import { Vec3 } from "cannon-es"
 
+const bodiesWithMovementState = query(select(MovementState), committed)
 const bodies = query(select(BodyComponent), committed, tag(Tag.Simulate))
+
+const tmpVelocity = new Vec3()
 
 export const stepPhysicsSubsystem = (world: World) => {
   const { tickRate } = getServerDetails(world)
@@ -33,11 +37,21 @@ export const stepPhysicsSubsystem = (world: World) => {
     const body = bodiesByEntity.get(entity)
 
     switch (command[0]) {
-      case PhysicsCommandType.Accelerate:
-        body.velocity.x += command[2]
-        body.velocity.y += command[3]
-        body.velocity.z += command[4]
+      case PhysicsCommandType.Accelerate: {
+        const [, , x, y, z] = command
+        const { x: vx, y: vy, z: vz } = body.quaternion.vmult(
+          tmpVelocity.set(x, y, z),
+        )
+        body.velocity.x += vx
+        body.velocity.y += vy
+        body.velocity.z += vz
         break
+      }
+      case PhysicsCommandType.Rotate: {
+        const [, , qx, qy, qz, qw] = command
+        body.quaternion.set(qx, qy, qz, qw)
+        break
+      }
     }
 
     physicsCommandPool.release(command)

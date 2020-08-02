@@ -51,6 +51,7 @@ export const reconcile = (
           input,
           clientData.playerEntityLocal,
           physicsTopic,
+          world,
         )
         stepPhysicsSubsystem(world)
         physicsTopic.flush()
