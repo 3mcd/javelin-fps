@@ -30,8 +30,10 @@ export const reconcile = (
     const [, , , meta] = update
 
     if (!(player && meta >= serverLastProcessedInput)) {
-      console.log(meta, serverLastProcessedInput)
-      return
+      console.warn(
+        `Out of order message (meta=${meta}, serverLastProcessedInput=${serverLastProcessedInput})`,
+      )
+      continue
     }
 
     messageHandler.applyUnreliableUpdate(update, world)

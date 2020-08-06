@@ -1,5 +1,5 @@
 import { created, createWorld, query, select, World } from "@javelin/ecs"
-import { JavelinMessage } from "@javelin/net"
+import { JavelinMessage, JavelinMessageType } from "@javelin/net"
 import { decode } from "@msgpack/msgpack"
 import { Client, Connection } from "@web-udp/client"
 import {

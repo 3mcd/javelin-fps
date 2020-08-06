@@ -10,12 +10,12 @@ const interpolatedTransforms = query(
   select(InterpolatedTransform, Body),
   committed,
 )
-const interpolatedTransformsChanged = query(select(Body), changed)
+const bodiesChanged = query(select(Body), changed)
 
 const tempQuatFrom = new Quaternion()
 const tempQuatTo = new Quaternion()
 
-const interpolationRecordPool = createStackPool(
+export const interpolationRecordPool = createStackPool(
   () => [0, 0, 0, 0, 0, 0, 0, 0],
   record => {
     record[0] = 0
@@ -43,10 +43,10 @@ export function interpolateRemoteEntitiesSystem(world: World) {
     }
   }
 
-  for (const [transform] of interpolatedTransformsChanged(world)) {
-    const { x, y, z, qx, qy, qz, qw } = transform
+  for (const [body] of bodiesChanged(world)) {
+    const { x, y, z, qx, qy, qz, qw } = body
     const interpolatedTransform = world.tryGetComponent(
-      transform._e,
+      body._e,
       InterpolatedTransform,
     )
 
@@ -64,9 +64,7 @@ export function interpolateRemoteEntitiesSystem(world: World) {
     }
   }
 
-  for (const [interpolatedTransform, transform] of interpolatedTransforms(
-    world,
-  )) {
+  for (const [interpolatedTransform] of interpolatedTransforms(world)) {
     // Drop older positions.
     while (
       interpolatedTransform.buffer.length >= 2 &&
@@ -84,25 +82,25 @@ export function interpolateRemoteEntitiesSystem(world: World) {
         [t0, x0, y0, z0, qx0, qy0, qz0, qw0],
         [t1, x1, y1, z1, qx1, qy1, qz1, qw1],
       ] = interpolatedTransform.buffer
-      const mutRenderTransform = world.mut(interpolatedTransform)
+      const mutInterpolatedTransform = world.mut(interpolatedTransform)
 
       const dr = renderTime - t0
       const dt = t1 - t0
 
       // Interpolate position
-      mutRenderTransform.x = x0 + ((x1 - x0) * dr) / dt
-      mutRenderTransform.y = y0 + ((y1 - y0) * dr) / dt
-      mutRenderTransform.z = z0 + ((z1 - z0) * dr) / dt
+      mutInterpolatedTransform.x = x0 + ((x1 - x0) * dr) / dt
+      mutInterpolatedTransform.y = y0 + ((y1 - y0) * dr) / dt
+      mutInterpolatedTransform.z = z0 + ((z1 - z0) * dr) / dt
 
       // Interpolate rotation
       tempQuatTo.set(qx0, qy0, qz0, qw0)
       tempQuatFrom.set(qx1, qy1, qz1, qw1)
       tempQuatTo.slerp(tempQuatFrom, dr / dt)
 
-      mutRenderTransform.qx = tempQuatTo.x
-      mutRenderTransform.qy = tempQuatTo.y
-      mutRenderTransform.qz = tempQuatTo.z
-      mutRenderTransform.qw = tempQuatTo.w
+      mutInterpolatedTransform.qx = tempQuatTo.x
+      mutInterpolatedTransform.qy = tempQuatTo.y
+      mutInterpolatedTransform.qz = tempQuatTo.z
+      mutInterpolatedTransform.qw = tempQuatTo.w
     }
   }
 }

@@ -20,7 +20,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
-import { Body, getServerDetails } from "../../../common"
+import { Body, getServerDetails, getInputBuffer } from "../../../common"
 import { getClientData } from "../queries"
 import { createSky } from "./objects/sky"
 import { InterpolatedTransform } from "../components"
@@ -142,9 +142,9 @@ mesh.receiveShadow = true
 
 scene.add(mesh)
 
-const objects = query(select(Body))
-const objectsCreated = query(select(Body), created)
-const objectsDestroyed = query(select(Body), destroyed)
+const bodies = query(select(Body))
+const bodiesCreated = query(select(Body), created)
+const bodiesDestroyed = query(select(Body), destroyed)
 
 const objectsByEntity = new Map<number, Object3D>()
 
@@ -152,7 +152,7 @@ const tmpPosition = new Vector3()
 const tmpRotation = new Quaternion()
 
 export function maintainRenderSceneSystem(world: World) {
-  for (const [sphere] of objectsCreated(world)) {
+  for (const [sphere] of bodiesCreated(world)) {
     const { _e: entity } = sphere
     const geometry = new SphereBufferGeometry(0.5, 32, 32)
     const material = new MeshLambertMaterial({
@@ -167,7 +167,7 @@ export function maintainRenderSceneSystem(world: World) {
     objectsByEntity.set(entity, mesh)
   }
 
-  for (const [sphere] of objectsDestroyed(world)) {
+  for (const [sphere] of bodiesDestroyed(world)) {
     const object = objectsByEntity.get(sphere._e)
     scene.remove(object)
   }
@@ -181,7 +181,7 @@ export function redraw(world: World, clock: Clock) {
   const clientData = getClientData(world)
   const localPlayerObject = objectsByEntity.get(clientData.playerEntityLocal)
 
-  for (const [body] of objects(world)) {
+  for (const [body] of bodies(world)) {
     const { _e: entity } = body
     const object = objectsByEntity.get(entity)
     const interpolatedTransform = world.tryGetComponent(
@@ -201,20 +201,26 @@ export function redraw(world: World, clock: Clock) {
       interpolatedTransform?.qw || body.qw,
     )
 
-    object.position.lerp(tmpPosition, alpha)
-    object.quaternion.slerp(tmpRotation, alpha)
+    object.position.copy(tmpPosition)
+    object.quaternion.copy(tmpRotation)
+    // object.position.lerp(tmpPosition, alpha)
+    // object.quaternion.slerp(tmpRotation, alpha)
   }
 
-  // if (input) {
-  //   const [pointerX, pointerY] = input.pointer
-  //   quatX.setFromAxisAngle(AXIS_HORIZONTAL, pointerY)
-  //   quatZ.setFromAxisAngle(AXIS_VERTICAL, pointerX)
-  //   cameraContainer.quaternion.slerp(quatZ.multiply(quatX), alpha)
-  // }
+  const { inputs } = getInputBuffer(world)
+
+  const input = inputs[inputs.length - 1]
 
   if (localPlayerObject) {
     cameraContainer.position.copy(localPlayerObject.position)
-    cameraContainer.quaternion.copy(localPlayerObject.quaternion)
+    // cameraContainer.quaternion.copy(localPlayerObject.quaternion)
+  }
+
+  if (input) {
+    const [, , , , , pointerX, pointerY] = input
+    quatX.setFromAxisAngle(AXIS_HORIZONTAL, pointerY)
+    quatZ.setFromAxisAngle(AXIS_VERTICAL, pointerX)
+    cameraContainer.quaternion.slerp(quatZ.multiply(quatX), alpha)
   }
 
   renderer.render(scene, camera)

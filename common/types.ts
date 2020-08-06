@@ -18,7 +18,6 @@ export enum ComponentTypes {
   Player,
   ServerDetails,
   Input,
-  MovementState,
   // client
   ClientData,
   InputBuffer,

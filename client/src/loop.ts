@@ -17,18 +17,16 @@ export function createLoop(
     const now = performance.now()
     const delta = now - previousTick
 
-    // if (previousTick + tickRate <= now) {
-    previousTick = now
-    clock.dt = delta
-    clock.now = now
-    clock.tick += 1
-    callback(clock)
-    timeout = setTimeout(loop, tickRate)
-    // } else if (delta < tickRate / 2) {
-    //   timeout = setTimeout(loop, 0)
-    // } else {
-    //   setImmediate(loop)
-    // }
+    if (previousTick + tickRate <= now) {
+      previousTick = now
+      clock.dt = delta
+      clock.now = now
+      clock.tick += 1
+      callback(clock)
+      timeout = setTimeout(loop, tickRate - 4)
+    } else {
+      setImmediate(loop)
+    }
   }
 
   function start() {

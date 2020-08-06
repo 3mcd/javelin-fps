@@ -1,4 +1,10 @@
-import { array, createComponentFactory, number, string } from "@javelin/ecs"
+import {
+  array,
+  createComponentFactory,
+  number,
+  string,
+  boolean,
+} from "@javelin/ecs"
 import { ComponentTypes } from "../types"
 
 export const Player = createComponentFactory(
@@ -9,6 +15,10 @@ export const Player = createComponentFactory(
       actorEntity: { defaultValue: -1, type: number },
       clientId: string,
       inputs: array(array(number)),
+      buffering: boolean,
+      targetInputBufferLength: { defaultValue: 2, type: number },
+      lastBufferGrow: number,
+      lastBufferShrink: number,
       lastInput: array(number),
     },
   },

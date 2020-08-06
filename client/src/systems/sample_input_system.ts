@@ -1,4 +1,5 @@
 import { World } from "@javelin/ecs"
+import { createStackPool } from "@javelin/ecs/dist/pool/stack_pool"
 import { Clock } from "@javelin/hrtime-loop"
 import { encode } from "@msgpack/msgpack"
 import { Connection } from "@web-udp/client"
@@ -10,7 +11,6 @@ import {
   physicsTopic,
 } from "../../../common"
 import { getClientData, getClientPlayer } from "../queries"
-import { createStackPool } from "@javelin/ecs/dist/pool/stack_pool"
 
 const SENSITIVITY = 0.002
 const PI_2 = Math.PI / 2

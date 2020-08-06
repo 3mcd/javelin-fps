@@ -68,7 +68,10 @@ const isConnectionMetadata = (metadata: any): metadata is ConnectionMetadata =>
   typeof metadata.clientId === "string"
 
 const createClientEntities = (client: Client) => {
-  const actor = world.create([Body.create()], Tag.Simulate)
+  const actor = world.create(
+    [Body.create(Math.random() * 10, Math.random() * 10)],
+    Tag.Simulate,
+  )
   const player = world.create([Player.create(client.id, actor)])
 
   client.playerEntity = player

@@ -1,16 +1,16 @@
 import { committed, query, select, tag, World } from "@javelin/ecs"
-import { Body as BodyComponent, MovementState } from "../../../components"
+import { Vec3 } from "cannon-es"
+import { Body as BodyComponent } from "../../../components"
 import { getServerDetails } from "../../../queries"
 import { Tag } from "../../../tag"
 import {
+  physicsCommandPool,
   PhysicsCommandType,
   physicsTopic,
-  physicsCommandPool,
 } from "../../../topics"
+import { isGrounded } from "../physics_utils"
 import { bodiesByEntity, simulation } from "../simulation"
-import { Vec3 } from "cannon-es"
 
-const bodiesWithMovementState = query(select(MovementState), committed)
 const bodies = query(select(BodyComponent), committed, tag(Tag.Simulate))
 
 const tmpVelocity = new Vec3()
@@ -37,13 +37,17 @@ export const stepPhysicsSubsystem = (world: World) => {
     const body = bodiesByEntity.get(entity)
 
     switch (command[0]) {
-      case PhysicsCommandType.Accelerate: {
-        const [, , x, y, z] = command
+      case PhysicsCommandType.Move: {
+        const [, , x, y] = command
         const { x: vx, y: vy, z: vz } = body.quaternion.vmult(
-          tmpVelocity.set(x, y, z),
+          tmpVelocity.set(x, y, 0),
         )
         body.velocity.x += vx
         body.velocity.y += vy
+        break
+      }
+      case PhysicsCommandType.Jump: {
+        const [, , vz] = command
         body.velocity.z += vz
         break
       }
@@ -82,5 +86,6 @@ export const stepPhysicsSubsystem = (world: World) => {
     mutBodyComponent.avx = avx
     mutBodyComponent.avy = avy
     mutBodyComponent.avz = avz
+    mutBodyComponent.grounded = isGrounded(body, simulation)
   }
 }
