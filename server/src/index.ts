@@ -14,6 +14,7 @@ import {
   ServerDetails,
   stepPhysicsSubsystem,
   Tag,
+  InputBuffer,
 } from "../../common"
 import { createClient } from "./client"
 import { applyPlayerInputSystem } from "./systems"
@@ -48,7 +49,7 @@ const world = createWorld({
   ],
 })
 
-world.create([ServerDetails.create(60, 30)])
+world.create([ServerDetails.create(tickRate, sendRate)])
 world.tick({ dt: 0, tick: 0, now: 0 })
 
 const server = createServer()
@@ -72,7 +73,10 @@ const createClientEntities = (client: Client) => {
     [Body.create(Math.random() * 10, Math.random() * 10)],
     Tag.Simulate,
   )
-  const player = world.create([Player.create(client.id, actor)])
+  const player = world.create([
+    Player.create(client.id, actor),
+    InputBuffer.create(),
+  ])
 
   client.playerEntity = player
 }
@@ -149,14 +153,14 @@ const tick = (clock: Clock) => {
       continue
     }
 
-    const player = world.tryGetComponent(client.playerEntity, Player)
+    const inputBuffer = world.tryGetComponent(client.playerEntity, InputBuffer)
 
-    if (!player) {
+    if (!inputBuffer) {
       continue
     }
 
     for (const message of client.messages) {
-      player.inputs.push(message as number[])
+      inputBuffer.inputs.push(message as number[])
     }
 
     mutableEmpty(client.messages)
@@ -164,8 +168,9 @@ const tick = (clock: Clock) => {
 
   world.tick(clock)
 
-  const reliable = encode(messageProducer.getReliableMessages(world))
-  const unreliable = messageProducer.getUnreliableMessages(world)
+  const messagesReliable = messageProducer.getReliableMessages(world)
+  const messagesReliableEncoded = encode(messagesReliable)
+  const messagesUnreliable = messageProducer.getUnreliableMessages(world)
 
   for (const client of clients) {
     switch (client.state) {
@@ -176,20 +181,22 @@ const tick = (clock: Clock) => {
         client.state = ClientState.Initialized
         break
       case ClientState.Initialized: {
-        client.connections[ConnectionType.Reliable].send(reliable)
+        client.connections[ConnectionType.Reliable].send(
+          messagesReliableEncoded,
+        )
 
-        const player = world.getComponent(client.playerEntity, Player)
+        const inputBuffer = world.getComponent(client.playerEntity, InputBuffer)
 
-        if (!player) {
+        if (!inputBuffer) {
           break
         }
 
-        if (unreliable.length > 0) {
+        if (messagesUnreliable.length > 0) {
           client.connections[ConnectionType.Unreliable].send(
             encode(
-              unreliable.map(updateUnreliable => {
+              messagesUnreliable.map(updateUnreliable => {
                 const update = updateUnreliable.slice() as UpdateUnreliable
-                update[3] = player.lastInput[7]
+                update[3] = inputBuffer.lastInput[7]
                 return update
               }),
             ),

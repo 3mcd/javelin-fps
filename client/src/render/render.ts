@@ -201,9 +201,8 @@ export function redraw(world: World, clock: Clock) {
       interpolatedTransform?.qw || body.qw,
     )
 
-    object.position.copy(tmpPosition)
+    object.position.lerp(tmpPosition, alpha)
     object.quaternion.copy(tmpRotation)
-    // object.position.lerp(tmpPosition, alpha)
     // object.quaternion.slerp(tmpRotation, alpha)
   }
 

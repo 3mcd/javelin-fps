@@ -1,32 +1,28 @@
-import {
-  committed,
-  query,
-  select,
-  World,
-  MutableComponentOf,
-} from "@javelin/ecs"
+import { committed, query, select, World } from "@javelin/ecs"
+import { Clock } from "@javelin/hrtime-loop"
 import {
   dispatchPhysicsCommandsFromInput,
+  InputBuffer,
   physicsTopic,
   Player,
 } from "../../../common"
-import { Clock } from "@javelin/hrtime-loop"
 
-const players = query(select(Player), committed)
+const players = query(select(Player, InputBuffer), committed)
 
 export const applyPlayerInputSystem = (world: World, clock: Clock) => {
-  for (const [player] of players(world)) {
-    const { actorEntity, inputs, lastInput, targetInputBufferLength } = player
+  for (const [player, inputBuffer] of players(world)) {
+    const { actorEntity } = player
+    const { inputs, lastInput, targetInputBufferLength } = inputBuffer
 
     if (actorEntity === -1) {
       continue
     }
 
-    const mutPlayer = world.mut(player)
+    const mutInputBuffer = world.mut(inputBuffer)
 
-    if (mutPlayer.buffering) {
+    if (mutInputBuffer.buffering) {
       if (inputs.length >= targetInputBufferLength) {
-        mutPlayer.buffering = false
+        mutInputBuffer.buffering = false
         console.log("Take", inputs.length)
       } else {
         continue
@@ -38,38 +34,37 @@ export const applyPlayerInputSystem = (world: World, clock: Clock) => {
     if (inputs.length === 0) {
       let growFactor = 1
 
-      if (mutPlayer.lastBufferGrow > 0) {
+      if (mutInputBuffer.lastBufferGrow > 0) {
         growFactor = Math.min(
           15,
-          Math.ceil((16.6666 * 1000) / (clock.now - mutPlayer.lastBufferGrow)),
+          Math.ceil(
+            (16.6666 * 1000) / (clock.now - mutInputBuffer.lastBufferGrow),
+          ),
         )
       }
 
-      mutPlayer.targetInputBufferLength += growFactor
-      mutPlayer.lastBufferGrow = clock.now
-      mutPlayer.buffering = true
-      console.log("Grow", mutPlayer.targetInputBufferLength)
+      mutInputBuffer.targetInputBufferLength += growFactor
+      mutInputBuffer.lastBufferGrow = clock.now
+      mutInputBuffer.buffering = true
+      console.log("Grow", mutInputBuffer.targetInputBufferLength)
       input = lastInput
     } else {
       if (
-        inputs.length >= mutPlayer.targetInputBufferLength &&
-        clock.now - mutPlayer.lastBufferShrink > 1000
+        inputs.length >= mutInputBuffer.targetInputBufferLength &&
+        clock.now - mutInputBuffer.lastBufferShrink > 1000
       ) {
-        mutPlayer.targetInputBufferLength = Math.max(
+        mutInputBuffer.targetInputBufferLength = Math.max(
           1,
-          mutPlayer.targetInputBufferLength - 1,
+          mutInputBuffer.targetInputBufferLength - 1,
         )
-        mutPlayer.lastBufferShrink = clock.now
+        mutInputBuffer.lastBufferShrink = clock.now
       }
       input = inputs.shift()
     }
 
     if (input) {
       dispatchPhysicsCommandsFromInput(input, actorEntity, physicsTopic, world)
-      // Note: we don't obtain a mutable reference here because we don't want
-      // to send a reliable update for Player components every time we process
-      // an input on the server. This should be implemented better in the future!
-      ;(player as MutableComponentOf<typeof Player>).lastInput = input
+      mutInputBuffer.lastInput = input
     }
   }
 }

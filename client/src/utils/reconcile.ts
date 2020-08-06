@@ -47,8 +47,6 @@ export const reconcile = (
         inputs.splice(i, 1)
         inputSamplePool.release(input)
       } else {
-        player.inputs[0] = input
-
         dispatchPhysicsCommandsFromInput(
           input,
           clientData.playerEntityLocal,

@@ -14,12 +14,6 @@ export const Player = createComponentFactory(
     schema: {
       actorEntity: { defaultValue: -1, type: number },
       clientId: string,
-      inputs: array(array(number)),
-      buffering: boolean,
-      targetInputBufferLength: { defaultValue: 2, type: number },
-      lastBufferGrow: number,
-      lastBufferShrink: number,
-      lastInput: array(number),
     },
   },
   (player, clientId: string, actorEntity: number) => {
