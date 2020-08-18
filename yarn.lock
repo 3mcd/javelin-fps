@@ -9,20 +9,20 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@javelin/ecs@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@javelin/ecs/-/ecs-0.14.0.tgz#dad49b2adfe9921457c30c0d75f672dcbfe213f2"
-  integrity sha512-I3S1r4kfZ8PpWga5vEdBMWeHuYbynYxIBL1Vg8RL+odtzGfMrUte+Tt53iFpOvMIys7iG4vMPXE8qXdqEB7kkA==
+"@javelin/ecs@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@javelin/ecs/-/ecs-0.16.0.tgz#41def8726af130c4cf9ce9df581df88b69b8e9eb"
+  integrity sha512-iZ/Sy1hL5+D9TQxkLD/5QQ/FZ74UdjWTYcmdYTdJNudqcm0RZGQ2LCNo3mz8FnWDFhdz6QRVr4jAAKIaM2awfQ==
 
-"@javelin/hrtime-loop@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@javelin/hrtime-loop/-/hrtime-loop-0.14.0.tgz#2655504e127e470fb023ee0e8c8e5f2ab6edc0ae"
-  integrity sha512-8EFBNDB8wDkCtp4Jcq1ZAQylzQ3GvpPn54JVdWLONmz47u/7nVf9X0kPqRgQPn58N9WAHPdyrGGeSx1Cb5TWTA==
+"@javelin/hrtime-loop@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@javelin/hrtime-loop/-/hrtime-loop-0.16.0.tgz#cfc97a46eb50f7058783cdecfbbec9d4a89a474f"
+  integrity sha512-vF5thsv/ZiWNMLeE0Hp9V/IypVurjesK8lL0U13DQTO+sx4DhdomJYZnOB3+dtnF1rDy8Co7kClkjErfo6A5vw==
 
-"@javelin/net@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@javelin/net/-/net-0.14.0.tgz#d65503dcd88f4e00d7d8adaacb167d1ebf3bc091"
-  integrity sha512-E5b0LWR7ui/zOh49dxRpQebME+OachnplNAY2zykt0KpOfbJaetkzZrWycwgTteO4g17zJyR0ga/98oKIHfGvg==
+"@javelin/net@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@javelin/net/-/net-0.16.0.tgz#364ceaa668ac7c4628b7aa4c726bd9a70bad2bfd"
+  integrity sha512-PyctznE03XxBOQJKAYG9YRv+nbiR62Qaj0ksAWa8DgcQii5N4hajBBwI8bgBpyAHzXX27lES8nJMw4aenBgBEw==
 
 "@msgpack/msgpack@^1.12.2":
   version "1.12.2"

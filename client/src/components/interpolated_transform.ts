@@ -1,7 +1,7 @@
-import { array, createComponentFactory, number } from "@javelin/ecs"
+import { array, createComponentType, number } from "@javelin/ecs"
 import { ComponentTypes } from "../../../common/types"
 
-export const InterpolatedTransform = createComponentFactory({
+export const InterpolatedTransform = createComponentType({
   type: ComponentTypes.InterpolatedTransform,
   name: "interpolated_transform",
   schema: {

@@ -1,8 +1,7 @@
-import { committed, query, select, tag, World } from "@javelin/ecs"
+import { query, World } from "@javelin/ecs"
 import { Vec3 } from "cannon-es"
-import { Body as BodyComponent } from "../../../components"
+import { Body as BodyComponent, Simulate } from "../../../components"
 import { getServerDetails } from "../../../queries"
-import { Tag } from "../../../tag"
 import {
   physicsCommandPool,
   PhysicsCommandType,
@@ -11,7 +10,7 @@ import {
 import { isGrounded } from "../physics_utils"
 import { bodiesByEntity, simulation } from "../simulation"
 
-const bodies = query(select(BodyComponent), committed, tag(Tag.Simulate))
+const bodies = query(BodyComponent, Simulate)
 
 const tmpVelocity = new Vec3()
 
@@ -19,7 +18,8 @@ export const stepPhysicsSubsystem = (world: World) => {
   const { tickRate } = getServerDetails(world)
 
   for (const [
-    { _e: entity, x, y, z, vx, vy, vz, qx, qy, qz, qw, avx, avy, avz },
+    entity,
+    [{ x, y, z, vx, vy, vz, qx, qy, qz, qw, avx, avy, avz }],
   ] of bodies(world)) {
     const body = bodiesByEntity.get(entity)
 
@@ -63,8 +63,8 @@ export const stepPhysicsSubsystem = (world: World) => {
 
   simulation.step(1 / tickRate)
 
-  for (const [bodyComponent] of bodies(world)) {
-    const body = bodiesByEntity.get(bodyComponent._e)
+  for (const [entity, [bodyComponent]] of bodies(world)) {
+    const body = bodiesByEntity.get(entity)
     const mutBodyComponent = world.mut(bodyComponent)
     const {
       position: { x, y, z },

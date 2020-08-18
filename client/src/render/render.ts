@@ -1,4 +1,4 @@
-import { created, destroyed, query, select, World } from "@javelin/ecs"
+import { attached, detached, query, World } from "@javelin/ecs"
 import { Clock } from "@javelin/hrtime-loop"
 import {
   ACESFilmicToneMapping,
@@ -20,10 +20,10 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three"
-import { Body, getServerDetails, getInputBuffer } from "../../../common"
+import { Body, getInputBuffer, getServerDetails } from "../../../common"
+import { InterpolatedTransform } from "../components"
 import { getClientData } from "../queries"
 import { createSky } from "./objects/sky"
-import { InterpolatedTransform } from "../components"
 
 const AXIS_HORIZONTAL = new Vector3(1, 0, 0)
 const AXIS_VERTICAL = new Vector3(0, 0, 1)
@@ -142,9 +142,9 @@ mesh.receiveShadow = true
 
 scene.add(mesh)
 
-const bodies = query(select(Body))
-const bodiesCreated = query(select(Body), created)
-const bodiesDestroyed = query(select(Body), destroyed)
+const bodies = query(Body)
+const bodiesCreated = query(attached(Body))
+const bodiesDestroyed = query(detached(Body))
 
 const objectsByEntity = new Map<number, Object3D>()
 
@@ -152,8 +152,7 @@ const tmpPosition = new Vector3()
 const tmpRotation = new Quaternion()
 
 export function maintainRenderSceneSystem(world: World) {
-  for (const [sphere] of bodiesCreated(world)) {
-    const { _e: entity } = sphere
+  for (const [entity, [sphere]] of bodiesCreated(world)) {
     const geometry = new SphereBufferGeometry(0.5, 32, 32)
     const material = new MeshLambertMaterial({
       color: 0xaa00dd,
@@ -167,8 +166,8 @@ export function maintainRenderSceneSystem(world: World) {
     objectsByEntity.set(entity, mesh)
   }
 
-  for (const [sphere] of bodiesDestroyed(world)) {
-    const object = objectsByEntity.get(sphere._e)
+  for (const [entity, [sphere]] of bodiesDestroyed(world)) {
+    const object = objectsByEntity.get(entity)
     scene.remove(object)
   }
 }
@@ -181,8 +180,7 @@ export function redraw(world: World, clock: Clock) {
   const clientData = getClientData(world)
   const localPlayerObject = objectsByEntity.get(clientData.playerEntityLocal)
 
-  for (const [body] of bodies(world)) {
-    const { _e: entity } = body
+  for (const [entity, [body]] of bodies(world)) {
     const object = objectsByEntity.get(entity)
     const interpolatedTransform = world.tryGetComponent(
       entity,

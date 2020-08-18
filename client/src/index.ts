@@ -1,4 +1,11 @@
-import { created, createWorld, query, select, World } from "@javelin/ecs"
+import {
+  attached,
+  createWorld,
+  query,
+  World,
+  WorldOpType,
+  Component,
+} from "@javelin/ecs"
 import { JavelinMessage, JavelinMessageType } from "@javelin/net"
 import { decode } from "@msgpack/msgpack"
 import { Client, Connection } from "@web-udp/client"
@@ -11,7 +18,8 @@ import {
   Player,
   ServerDetails,
   stepPhysicsSubsystem,
-  Tag,
+  Simulate,
+  ComponentTypes,
 } from "../../common"
 import { API_HOST } from "./config"
 import { createLoop } from "./loop"
@@ -24,6 +32,7 @@ import {
   interpolateRemoteEntitiesSystem,
 } from "./systems"
 import { ms } from "./utils"
+import { InterpolatedTransform } from "./components"
 
 const clientId = Math.random().toString()
 
@@ -63,7 +72,7 @@ async function main() {
   setupConnection(connections.reliable)
   setupConnection(connections.unreliable)
 
-  const bodiesCreated = query(select(Body), created)
+  const bodiesCreated = query(attached(Body))
   const initializeLocalEntitiesSystem = (world: World) => {
     const clientData = getClientData(world)
     const player = getClientPlayer(world)
@@ -78,9 +87,11 @@ async function main() {
       )
     }
 
-    for (const [{ _e: entity }] of bodiesCreated(world)) {
+    for (const [entity] of bodiesCreated(world)) {
       if (entity === clientData.playerEntityLocal) {
-        world.addTag(entity, Tag.Simulate)
+        world.attach(entity, world.component(Simulate))
+      } else {
+        world.attach(entity, world.component(InterpolatedTransform))
       }
     }
   }
@@ -95,13 +106,26 @@ async function main() {
       interpolateRemoteEntitiesSystem,
       maintainRenderSceneSystem,
     ],
-    componentFactories: [Body, ClientData, Player, ServerDetails],
+    componentTypes: [
+      Body,
+      ClientData,
+      InputBuffer,
+      InterpolatedTransform,
+      Player,
+      ServerDetails,
+      Simulate,
+    ],
   })
 
   ;(window as any).world = world
   ;(window as any).connections = connections
 
-  world.create([ClientData.create(clientId), InputBuffer.create()])
+  world.spawn(
+    world.component(ClientData, clientId),
+    world.component(InputBuffer),
+  )
+
+  world.tick({ dt: 0, tick: 0, now: 0 })
   world.tick({ dt: 0, tick: 0, now: 0 })
 
   const loop = createLoop((1 / 60) * 1000, clock => {

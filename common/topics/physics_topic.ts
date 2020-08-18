@@ -1,5 +1,5 @@
 import { createTopic } from "@javelin/ecs"
-import { createStackPool } from "@javelin/ecs/dist/pool/stack_pool"
+import { createStackPool } from "@javelin/ecs/dist/cjs/pool/stack_pool"
 
 export enum PhysicsCommandType {
   Move,

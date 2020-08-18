@@ -1,4 +1,4 @@
-import { committed, query, select, World } from "@javelin/ecs"
+import { query, World } from "@javelin/ecs"
 import { Clock } from "@javelin/hrtime-loop"
 import {
   dispatchPhysicsCommandsFromInput,
@@ -7,10 +7,10 @@ import {
   Player,
 } from "../../../common"
 
-const players = query(select(Player, InputBuffer), committed)
+const players = query(Player, InputBuffer)
 
 export const applyPlayerInputSystem = (world: World, clock: Clock) => {
-  for (const [player, inputBuffer] of players(world)) {
+  for (const [, [player, inputBuffer]] of players(world)) {
     const { actorEntity } = player
     const { inputs, lastInput, targetInputBufferLength } = inputBuffer
 

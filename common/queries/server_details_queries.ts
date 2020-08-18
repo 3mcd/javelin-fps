@@ -1,10 +1,10 @@
-import { World, query, select } from "@javelin/ecs"
+import { query, World } from "@javelin/ecs"
 import { ServerDetails } from "../components"
 
-const serverDetails = query(select(ServerDetails))
+const serverDetails = query(ServerDetails)
 
 export const getServerDetails = (world: World) => {
-  for (const [result] of serverDetails(world)) {
+  for (const [, [result]] of serverDetails(world)) {
     return result
   }
 

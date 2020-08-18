@@ -8,13 +8,13 @@ import {
   Body,
   ConnectionMetadata,
   ConnectionType,
+  InputBuffer,
   maintainPhysicsSubsystem,
   physicsTopic,
   Player,
   ServerDetails,
+  Simulate,
   stepPhysicsSubsystem,
-  Tag,
-  InputBuffer,
 } from "../../common"
 import { createClient } from "./client"
 import { applyPlayerInputSystem } from "./systems"
@@ -41,7 +41,7 @@ const messageProducer = createMessageProducer({
 })
 
 const world = createWorld({
-  componentFactories: components.map(c => c.type),
+  componentTypes: [...components.map(c => c.type), InputBuffer, Simulate],
   systems: [
     maintainPhysicsSubsystem,
     applyPlayerInputSystem,
@@ -49,7 +49,7 @@ const world = createWorld({
   ],
 })
 
-world.create([ServerDetails.create(tickRate, sendRate)])
+world.spawn(world.component(ServerDetails, tickRate, sendRate))
 world.tick({ dt: 0, tick: 0, now: 0 })
 
 const server = createServer()
@@ -69,14 +69,14 @@ const isConnectionMetadata = (metadata: any): metadata is ConnectionMetadata =>
   typeof metadata.clientId === "string"
 
 const createClientEntities = (client: Client) => {
-  const actor = world.create(
-    [Body.create(Math.random() * 10, Math.random() * 10)],
-    Tag.Simulate,
+  const actor = world.spawn(
+    world.component(Body, Math.random() * 10, Math.random() * 10),
+    world.component(Simulate),
   )
-  const player = world.create([
-    Player.create(client.id, actor),
-    InputBuffer.create(),
-  ])
+  const player = world.spawn(
+    world.component(Player, client.id, actor),
+    world.component(InputBuffer),
+  )
 
   client.playerEntity = player
 }

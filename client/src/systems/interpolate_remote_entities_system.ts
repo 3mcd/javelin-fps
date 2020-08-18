@@ -1,16 +1,11 @@
-import { changed, committed, created, query, select, World } from "@javelin/ecs"
+import { attached, changed, query, World } from "@javelin/ecs"
+import { createStackPool } from "@javelin/ecs/dist/esm/pool/stack_pool"
 import { Quaternion } from "three"
-import { Body, getServerDetails } from "../../../common"
+import { Body, getServerDetails, Simulate } from "../../../common"
 import { InterpolatedTransform } from "../components"
-import { getClientData } from "../queries"
-import { createStackPool } from "@javelin/ecs/dist/pool/stack_pool"
 
-const bodiesCreated = query(select(Body), created)
-const interpolatedTransforms = query(
-  select(InterpolatedTransform, Body),
-  committed,
-)
-const bodiesChanged = query(select(Body), changed)
+const toInterpolate = query(InterpolatedTransform)
+const toUpdate = query(InterpolatedTransform, changed(Body))
 
 const tempQuatFrom = new Quaternion()
 const tempQuatTo = new Quaternion()
@@ -32,39 +27,27 @@ export const interpolationRecordPool = createStackPool(
 )
 
 export function interpolateRemoteEntitiesSystem(world: World) {
-  const { playerEntityLocal } = getClientData(world)
   const { sendRate } = getServerDetails(world)
   const time = Date.now()
   const renderTime = time - 1000 / sendRate
 
-  for (const [transform] of bodiesCreated(world)) {
-    if (transform._e !== playerEntityLocal) {
-      world.insert(transform._e, [InterpolatedTransform.create()])
-    }
-  }
-
-  for (const [body] of bodiesChanged(world)) {
+  for (const [, [interpolatedTransform, body]] of toUpdate(world)) {
     const { x, y, z, qx, qy, qz, qw } = body
-    const interpolatedTransform = world.tryGetComponent(
-      body._e,
-      InterpolatedTransform,
-    )
+    const record = interpolationRecordPool.retain()
 
-    if (interpolatedTransform) {
-      const record = interpolationRecordPool.retain()
-      record[0] = Date.now()
-      record[1] = x
-      record[2] = y
-      record[3] = z
-      record[4] = qx
-      record[5] = qy
-      record[6] = qz
-      record[7] = qw
-      interpolatedTransform.buffer.push(record)
-    }
+    record[0] = Date.now()
+    record[1] = x
+    record[2] = y
+    record[3] = z
+    record[4] = qx
+    record[5] = qy
+    record[6] = qz
+    record[7] = qw
+
+    interpolatedTransform.buffer.push(record)
   }
 
-  for (const [interpolatedTransform] of interpolatedTransforms(world)) {
+  for (const [, [interpolatedTransform]] of toInterpolate(world)) {
     // Drop older positions.
     while (
       interpolatedTransform.buffer.length >= 2 &&

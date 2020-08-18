@@ -1,7 +1,7 @@
-import { array, boolean, createComponentFactory, number } from "@javelin/ecs"
+import { array, boolean, createComponentType, number } from "@javelin/ecs"
 import { ComponentTypes } from "../types"
 
-export const InputBuffer = createComponentFactory({
+export const InputBuffer = createComponentType({
   type: ComponentTypes.InputBuffer,
   name: "input_buffer",
   schema: {

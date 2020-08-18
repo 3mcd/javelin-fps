@@ -1,23 +1,23 @@
-import { query, select, World } from "@javelin/ecs"
+import { query, World } from "@javelin/ecs"
 import { ClientData, Player } from "../../../common"
 
-const clientData = query(select(ClientData))
+const clientData = query(ClientData)
 
 export const getClientData = (world: World) => {
-  for (const [result] of clientData(world)) {
+  for (const [, [result]] of clientData(world)) {
     return result
   }
 
   return null
 }
 
-const players = query(select(Player))
+const players = query(Player)
 
 export const getClientPlayer = (world: World) => {
   const clientData = getClientData(world)
   const { clientId } = clientData
 
-  for (const [player] of players(world)) {
+  for (const [, [player]] of players(world)) {
     if (player.clientId === clientId) {
       return player
     }

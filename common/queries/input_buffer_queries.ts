@@ -1,10 +1,10 @@
-import { query, select, World } from "@javelin/ecs"
+import { query, World } from "@javelin/ecs"
 import { InputBuffer } from "../components"
 
-const inputBuffers = query(select(InputBuffer))
+const inputBuffers = query(InputBuffer)
 
 export const getInputBuffer = (world: World) => {
-  for (const [result] of inputBuffers(world)) {
+  for (const [, [result]] of inputBuffers(world)) {
     return result
   }
 

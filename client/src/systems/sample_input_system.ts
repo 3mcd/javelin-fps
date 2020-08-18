@@ -1,5 +1,5 @@
 import { World } from "@javelin/ecs"
-import { createStackPool } from "@javelin/ecs/dist/pool/stack_pool"
+import { createStackPool } from "@javelin/ecs/dist/esm/pool/stack_pool"
 import { Clock } from "@javelin/hrtime-loop"
 import { encode } from "@msgpack/msgpack"
 import { Connection } from "@web-udp/client"
@@ -9,6 +9,7 @@ import {
   dispatchPhysicsCommandsFromInput,
   getInputBuffer,
   physicsTopic,
+  Simulate,
 } from "../../../common"
 import { getClientData, getClientPlayer } from "../queries"
 
@@ -119,14 +120,16 @@ export const createSampleInputSystem = (connection: Connection) => (
 
   input[7] = clock.tick
 
-  dispatchPhysicsCommandsFromInput(
-    input,
-    clientData.playerEntityLocal,
-    physicsTopic,
-    world,
-  )
+  if (world.tryGetComponent(clientData.playerEntityLocal, Simulate)) {
+    dispatchPhysicsCommandsFromInput(
+      input,
+      clientData.playerEntityLocal,
+      physicsTopic,
+      world,
+    )
 
-  inputBuffer.inputs.push(input)
+    inputBuffer.inputs.push(input)
 
-  connection.send(encode(input))
+    connection.send(encode(input))
+  }
 }
