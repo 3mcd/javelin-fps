@@ -21,7 +21,7 @@ import {
   WebGLRenderer,
 } from "three"
 import { Body, getInputBuffer, getServerDetails } from "../../../common"
-import { InterpolatedTransform } from "../components"
+import { ClientTransform } from "../components"
 import { getClientData } from "../queries"
 import { createSky } from "./objects/sky"
 
@@ -142,9 +142,9 @@ mesh.receiveShadow = true
 
 scene.add(mesh)
 
-const bodies = query(Body)
-const bodiesCreated = query(attached(Body))
-const bodiesDestroyed = query(detached(Body))
+const transforms = query(ClientTransform)
+const transformsCreated = query(attached(ClientTransform))
+const transformsDestroyed = query(detached(ClientTransform))
 
 const objectsByEntity = new Map<number, Object3D>()
 
@@ -152,7 +152,7 @@ const tmpPosition = new Vector3()
 const tmpRotation = new Quaternion()
 
 export function maintainRenderSceneSystem(world: World) {
-  for (const [entity, [sphere]] of bodiesCreated(world)) {
+  for (const [entity] of transformsCreated(world)) {
     const geometry = new SphereBufferGeometry(0.5, 32, 32)
     const material = new MeshLambertMaterial({
       color: 0xaa00dd,
@@ -166,7 +166,7 @@ export function maintainRenderSceneSystem(world: World) {
     objectsByEntity.set(entity, mesh)
   }
 
-  for (const [entity, [sphere]] of bodiesDestroyed(world)) {
+  for (const [entity] of transformsDestroyed(world)) {
     const object = objectsByEntity.get(entity)
     scene.remove(object)
   }
@@ -180,24 +180,11 @@ export function redraw(world: World, clock: Clock) {
   const clientData = getClientData(world)
   const localPlayerObject = objectsByEntity.get(clientData.playerEntityLocal)
 
-  for (const [entity, [body]] of bodies(world)) {
+  for (const [entity, [{ x, y, z, qx, qy, qz, qw }]] of transforms(world)) {
     const object = objectsByEntity.get(entity)
-    const interpolatedTransform = world.tryGetComponent(
-      entity,
-      InterpolatedTransform,
-    )
 
-    tmpPosition.set(
-      interpolatedTransform?.x || body.x,
-      interpolatedTransform?.y || body.y,
-      interpolatedTransform?.z || body.z,
-    )
-    tmpRotation.set(
-      interpolatedTransform?.qx || body.qx,
-      interpolatedTransform?.qy || body.qy,
-      interpolatedTransform?.qz || body.qz,
-      interpolatedTransform?.qw || body.qw,
-    )
+    tmpPosition.set(x, y, z)
+    tmpRotation.set(qx, qy, qz, qw)
 
     object.position.lerp(tmpPosition, alpha)
     object.quaternion.copy(tmpRotation)

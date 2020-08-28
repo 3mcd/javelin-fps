@@ -18,12 +18,11 @@ export const applyPlayerInputSystem = (world: World, clock: Clock) => {
       continue
     }
 
-    const mutInputBuffer = world.mut(inputBuffer)
+    const mutInputBuffer = world.getMutableComponent(inputBuffer)
 
     if (mutInputBuffer.buffering) {
       if (inputs.length >= targetInputBufferLength) {
         mutInputBuffer.buffering = false
-        console.log("Take", inputs.length)
       } else {
         continue
       }
@@ -46,7 +45,6 @@ export const applyPlayerInputSystem = (world: World, clock: Clock) => {
       mutInputBuffer.targetInputBufferLength += growFactor
       mutInputBuffer.lastBufferGrow = clock.now
       mutInputBuffer.buffering = true
-      console.log("Grow", mutInputBuffer.targetInputBufferLength)
       input = lastInput
     } else {
       if (

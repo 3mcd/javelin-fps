@@ -1,11 +1,13 @@
 import { World } from "@javelin/ecs"
 import { MessageHandler, UpdateUnreliable } from "@javelin/net"
 import {
+  Body,
   dispatchPhysicsCommandsFromInput,
   getInputBuffer,
   physicsTopic,
   stepPhysicsSubsystem,
 } from "../../../common"
+import { ClientTransform } from "../components"
 import { getClientData, getClientPlayer } from "../queries"
 import { inputSamplePool } from "../systems"
 
@@ -16,18 +18,18 @@ export const reconcile = (
 ) => {
   const player = getClientPlayer(world)
 
-  if (!player) {
-    return
-  }
-
   const clientData = getClientData(world)
   const { inputs } = getInputBuffer(world)
 
-  let { serverLastProcessedInput } = clientData
+  let { serverLastProcessedInput, playerEntityLocal } = clientData
+
+  if (!(player && playerEntityLocal > -1)) {
+    return
+  }
 
   for (let u = 0; u < updates.length; u++) {
     const update = updates[u]
-    const [, , , meta] = update
+    const [, , meta] = update
 
     if (!(player && meta >= serverLastProcessedInput)) {
       console.warn(
@@ -35,6 +37,8 @@ export const reconcile = (
       )
       continue
     }
+
+    const serverTick = meta as number
 
     messageHandler.applyUnreliableUpdate(update, world)
 
@@ -49,7 +53,7 @@ export const reconcile = (
       } else {
         dispatchPhysicsCommandsFromInput(
           input,
-          clientData.playerEntityLocal,
+          playerEntityLocal,
           physicsTopic,
           world,
         )
@@ -58,8 +62,18 @@ export const reconcile = (
         i++
       }
     }
-    serverLastProcessedInput = meta as number
+    serverLastProcessedInput = serverTick
   }
 
-  world.mut(clientData).serverLastProcessedInput = serverLastProcessedInput
+  const playerBody = world.getComponent(playerEntityLocal, Body)
+  const playerClientTransform = world.getMutableComponent(
+    world.getComponent(playerEntityLocal, ClientTransform),
+  )
+
+  // Copy reconciled player body state over to client transform (for rendering)
+  Object.assign(playerClientTransform, playerBody)
+
+  world.getMutableComponent(
+    clientData,
+  ).serverLastProcessedInput = serverLastProcessedInput
 }

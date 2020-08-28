@@ -15,12 +15,14 @@ export enum ConnectionType {
 export enum ComponentTypes {
   // common
   Body,
+  Input,
   Player,
   ServerDetails,
-  Input,
   Simulate,
   // client
+  BodyBuffer,
   ClientData,
+  ClientTransform,
   InputBuffer,
-  InterpolatedTransform,
+  InterpolationBuffer,
 }

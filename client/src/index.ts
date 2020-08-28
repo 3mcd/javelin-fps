@@ -1,12 +1,5 @@
-import {
-  attached,
-  createWorld,
-  query,
-  World,
-  WorldOpType,
-  Component,
-} from "@javelin/ecs"
-import { JavelinMessage, JavelinMessageType } from "@javelin/net"
+import { attached, createWorld, query, World } from "@javelin/ecs"
+import { createMessageHandler, JavelinMessage } from "@javelin/net"
 import { decode } from "@msgpack/msgpack"
 import { Client, Connection } from "@web-udp/client"
 import {
@@ -17,13 +10,12 @@ import {
   physicsTopic,
   Player,
   ServerDetails,
-  stepPhysicsSubsystem,
   Simulate,
-  ComponentTypes,
+  stepPhysicsSubsystem,
 } from "../../common"
+import { InterpolationBuffer, ClientTransform } from "./components"
 import { API_HOST } from "./config"
 import { createLoop } from "./loop"
-import { messageHandler } from "./message_handler"
 import { getConnectionOptions } from "./net"
 import { getClientData, getClientPlayer } from "./queries"
 import { createRenderLoop, maintainRenderSceneSystem, redraw } from "./render"
@@ -31,8 +23,7 @@ import {
   createSampleInputSystem,
   interpolateRemoteEntitiesSystem,
 } from "./systems"
-import { ms } from "./utils"
-import { InterpolatedTransform } from "./components"
+import { ms, reconcile } from "./utils"
 
 const clientId = Math.random().toString()
 
@@ -47,6 +38,12 @@ async function main() {
     reliable: await client.connect(connectionOptions.reliable),
     unreliable: await client.connect(connectionOptions.unreliable),
   }
+
+  const messageHandler = createMessageHandler({
+    processUnreliableUpdates(updates, world) {
+      reconcile(updates, world, messageHandler)
+    },
+  })
 
   const handleMessage = (data: any) => {
     const messages = decode(data) as JavelinMessage[]
@@ -82,16 +79,24 @@ async function main() {
     }
 
     if (player.actorEntity !== -1) {
-      world.mut(clientData).playerEntityLocal = messageHandler.getLocalEntity(
-        player.actorEntity,
-      )
+      world.getMutableComponent(
+        clientData,
+      ).playerEntityLocal = messageHandler.getLocalEntity(player.actorEntity)
     }
 
     for (const [entity] of bodiesCreated(world)) {
       if (entity === clientData.playerEntityLocal) {
-        world.attach(entity, world.component(Simulate))
+        world.attach(
+          entity,
+          world.component(ClientTransform),
+          world.component(Simulate),
+        )
       } else {
-        world.attach(entity, world.component(InterpolatedTransform))
+        world.attach(
+          entity,
+          world.component(ClientTransform),
+          world.component(InterpolationBuffer),
+        )
       }
     }
   }
@@ -110,22 +115,23 @@ async function main() {
       Body,
       ClientData,
       InputBuffer,
-      InterpolatedTransform,
+      InterpolationBuffer,
       Player,
       ServerDetails,
       Simulate,
+      ClientTransform,
     ],
   })
 
   ;(window as any).world = world
   ;(window as any).connections = connections
 
+  // Create singleton components
   world.spawn(
     world.component(ClientData, clientId),
     world.component(InputBuffer),
   )
 
-  world.tick({ dt: 0, tick: 0, now: 0 })
   world.tick({ dt: 0, tick: 0, now: 0 })
 
   const loop = createLoop((1 / 60) * 1000, clock => {

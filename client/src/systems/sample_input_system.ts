@@ -127,9 +127,7 @@ export const createSampleInputSystem = (connection: Connection) => (
       physicsTopic,
       world,
     )
-
     inputBuffer.inputs.push(input)
-
     connection.send(encode(input))
   }
 }

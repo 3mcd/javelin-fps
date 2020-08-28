@@ -12,4 +12,7 @@ export const InputBuffer = createComponentType({
     lastBufferShrink: number,
     lastInput: array(number),
   },
+  initialize(inputBuffer) {
+    inputBuffer.lastInput = [0, 0, 0, 0, 0, 0, 0, 0]
+  },
 })

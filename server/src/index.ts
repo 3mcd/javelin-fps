@@ -70,7 +70,7 @@ const isConnectionMetadata = (metadata: any): metadata is ConnectionMetadata =>
 
 const createClientEntities = (client: Client) => {
   const actor = world.spawn(
-    world.component(Body, Math.random() * 10, Math.random() * 10),
+    world.component(Body, Math.random() * 10, Math.random() * 10, 10),
     world.component(Simulate),
   )
   const player = world.spawn(
@@ -192,14 +192,16 @@ const tick = (clock: Clock) => {
         }
 
         if (messagesUnreliable.length > 0) {
+          const clientUnreliableMessages = messagesUnreliable.map(
+            updateUnreliable => {
+              const update = updateUnreliable.slice() as UpdateUnreliable
+              update[2] = inputBuffer.lastInput[7]
+              return update
+            },
+          )
+
           client.connections[ConnectionType.Unreliable].send(
-            encode(
-              messagesUnreliable.map(updateUnreliable => {
-                const update = updateUnreliable.slice() as UpdateUnreliable
-                update[3] = inputBuffer.lastInput[7]
-                return update
-              }),
-            ),
+            encode(clientUnreliableMessages),
           )
         }
 

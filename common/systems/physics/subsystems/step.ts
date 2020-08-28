@@ -53,6 +53,7 @@ export const stepPhysicsSubsystem = (world: World) => {
       }
       case PhysicsCommandType.Rotate: {
         const [, , qx, qy, qz, qw] = command
+
         body.quaternion.set(qx, qy, qz, qw)
         break
       }
@@ -65,7 +66,7 @@ export const stepPhysicsSubsystem = (world: World) => {
 
   for (const [entity, [bodyComponent]] of bodies(world)) {
     const body = bodiesByEntity.get(entity)
-    const mutBodyComponent = world.mut(bodyComponent)
+    const mutBodyComponent = world.getMutableComponent(bodyComponent)
     const {
       position: { x, y, z },
       velocity: { x: vx, y: vy, z: vz },

@@ -7,7 +7,7 @@ export const ClientData = createComponentType({
   schema: {
     clientId: string,
     serverLastProcessedInput: number,
-    playerEntityLocal: number,
+    playerEntityLocal: { type: number, defaultValue: -1 },
   },
   initialize: (clientData, clientId: string) => {
     clientData.clientId = clientId

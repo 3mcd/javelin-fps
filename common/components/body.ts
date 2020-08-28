@@ -11,7 +11,7 @@ export const Body = createComponentType({
     qx: number,
     qy: number,
     qz: number,
-    qw: number,
+    qw: { type: number, defaultValue: 1 },
     vx: number,
     vy: number,
     vz: number,
