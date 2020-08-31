@@ -15,7 +15,6 @@ export enum ConnectionType {
 export enum ComponentTypes {
   // common
   Body,
-  Input,
   Player,
   ServerDetails,
   Simulate,

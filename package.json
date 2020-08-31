@@ -4,9 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@javelin/ecs": "^0.16.1-alpha.1",
-    "@javelin/hrtime-loop": "^0.16.1-alpha.1",
-    "@javelin/net": "^0.16.1-alpha.1",
+    "@javelin/ecs": "^0.16.1-alpha.2",
+    "@javelin/hrtime-loop": "^0.16.1-alpha.2",
+    "@javelin/net": "^0.16.1-alpha.2",
     "@msgpack/msgpack": "^1.12.2",
     "@web-udp/client": "^4.1.0",
     "@web-udp/server": "^4.1.0",

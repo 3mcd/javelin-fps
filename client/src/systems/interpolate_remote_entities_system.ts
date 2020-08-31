@@ -50,16 +50,16 @@ export function interpolateRemoteEntitiesSystem(world: World) {
   for (const [, [interpolationBuffer, renderTransform]] of toInterpolate(
     world,
   )) {
-    const mutInterpolationBuffer = world.getMutableComponent(
-      interpolationBuffer,
-    )
+    // const mutInterpolationBuffer = world.getMutableComponent(
+    //   interpolationBuffer,
+    // )
 
     // Drop older positions.
     while (
       interpolationBuffer.buffer.length >= 2 &&
       interpolationBuffer.buffer[1][0] <= renderTime
     ) {
-      interpolationRecordPool.release(mutInterpolationBuffer.buffer.shift())
+      interpolationRecordPool.release(interpolationBuffer.buffer.shift())
     }
 
     if (

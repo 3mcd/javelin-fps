@@ -64,9 +64,9 @@ export const stepPhysicsSubsystem = (world: World) => {
 
   simulation.step(1 / tickRate)
 
-  for (const [entity, [bodyComponent]] of bodies(world)) {
+  for (const [entity, [_body]] of bodies(world)) {
     const body = bodiesByEntity.get(entity)
-    const mutBodyComponent = world.getMutableComponent(bodyComponent)
+    const m_body = world.getMutableComponent(_body)
     const {
       position: { x, y, z },
       velocity: { x: vx, y: vy, z: vz },
@@ -74,19 +74,19 @@ export const stepPhysicsSubsystem = (world: World) => {
       angularVelocity: { x: avx, y: avy, z: avz },
     } = body
 
-    mutBodyComponent.x = x
-    mutBodyComponent.y = y
-    mutBodyComponent.z = z
-    mutBodyComponent.qx = qx
-    mutBodyComponent.qy = qy
-    mutBodyComponent.qz = qz
-    mutBodyComponent.qw = qw
-    mutBodyComponent.vx = vx
-    mutBodyComponent.vy = vy
-    mutBodyComponent.vz = vz
-    mutBodyComponent.avx = avx
-    mutBodyComponent.avy = avy
-    mutBodyComponent.avz = avz
-    mutBodyComponent.grounded = isGrounded(body, simulation)
+    m_body.x = x
+    m_body.y = y
+    m_body.z = z
+    m_body.qx = qx
+    m_body.qy = qy
+    m_body.qz = qz
+    m_body.qw = qw
+    m_body.vx = vx
+    m_body.vy = vy
+    m_body.vz = vz
+    m_body.avx = avx
+    m_body.avy = avy
+    m_body.avz = avz
+    m_body.grounded = isGrounded(body, simulation)
   }
 }
