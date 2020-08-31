@@ -187,8 +187,7 @@ export function redraw(world: World, clock: Clock) {
     tmpRotation.set(qx, qy, qz, qw)
 
     object.position.lerp(tmpPosition, alpha)
-    object.quaternion.copy(tmpRotation)
-    // object.quaternion.slerp(tmpRotation, alpha)
+    object.quaternion.slerp(tmpRotation, alpha)
   }
 
   const { inputs } = getInputBuffer(world)

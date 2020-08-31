@@ -50,6 +50,8 @@ export function interpolateRemoteEntitiesSystem(world: World) {
   for (const [, [interpolationBuffer, renderTransform]] of toInterpolate(
     world,
   )) {
+    const m_clientTransform = world.getMutableComponent(renderTransform)
+
     // const mutInterpolationBuffer = world.getMutableComponent(
     //   interpolationBuffer,
     // )
@@ -71,7 +73,6 @@ export function interpolateRemoteEntitiesSystem(world: World) {
         [t0, x0, y0, z0, qx0, qy0, qz0, qw0],
         [t1, x1, y1, z1, qx1, qy1, qz1, qw1],
       ] = interpolationBuffer.buffer
-      const m_clientTransform = world.getMutableComponent(renderTransform)
 
       const dr = renderTime - t0
       const dt = t1 - t0
