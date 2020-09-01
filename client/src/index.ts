@@ -1,7 +1,8 @@
 import { attached, createWorld, query, World } from "@javelin/ecs"
 import { createMessageHandler, JavelinMessage } from "@javelin/net"
 import { decode } from "@msgpack/msgpack"
-import { Client, Connection } from "@web-udp/client"
+import { Client, Connection, RTCConnectionProvider } from "@web-udp/client"
+import { WebSocketTransport } from "@web-udp/protocol"
 import {
   Body,
   ClientData,
@@ -26,9 +27,31 @@ import {
 import { ms, reconcile } from "./utils"
 
 const clientId = Math.random().toString()
+const transport = new WebSocketTransport(new WebSocket(`ws://${API_HOST}`))
+
+async function fetchIceServers() {
+  try {
+    const req = await fetch(`http://${API_HOST}/ice`)
+    const { iceServers } = await req.json()
+
+    return iceServers
+  } catch {
+    return undefined
+  }
+}
 
 async function main() {
-  const client = new Client({ url: API_HOST })
+  const client = new Client({
+    url: API_HOST,
+    provider: new RTCConnectionProvider({
+      transport,
+      iceServers: await fetchIceServers(),
+      onConnection(connection) {
+        client.connections.dispatch(connection)
+      },
+    }),
+    transport,
+  })
 
   // Wait a brief duration before connecting.
   await ms(500)

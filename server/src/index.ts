@@ -19,6 +19,13 @@ import {
 import { createClient } from "./client"
 import { applyPlayerInputSystem } from "./systems"
 import { Client, ClientState } from "./types"
+import dotenv from "dotenv"
+
+dotenv.config()
+
+const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID
+const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN
+const twilioClient = require("twilio")(twilioAccountSid, twilioAuthToken)
 
 const port = Number(process.env.PORT)
 const tickRate = Number(process.env.TICK_RATE)
@@ -52,7 +59,30 @@ const world = createWorld({
 world.spawn(world.component(ServerDetails, tickRate, sendRate))
 world.tick({ dt: 0, tick: 0, now: 0 })
 
-const server = createServer()
+const headers = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "Origin, X-Requested-With, Content-Type, Accept",
+  "Content-Type": "application/json",
+}
+
+const server = createServer((req, res) => {
+  if (req.method === "GET" && req.url === "/ice") {
+    twilioClient.tokens
+      .create()
+      .then((token: any) => {
+        res.writeHead(200, headers)
+        res.write(JSON.stringify({ iceServers: token.iceServers }))
+        res.end()
+      })
+      .catch((err: Error) => {
+        res.writeHead(500, headers)
+        res.write(JSON.stringify({ error: err.message }))
+        res.end()
+      })
+  }
+})
+
 const udp = new Server({ server })
 
 const clients: Client[] = []
