@@ -102,7 +102,7 @@ async function main() {
     }
 
     if (player.actorEntity !== -1) {
-      world.getMutableComponent(
+      world.getObservedComponent(
         clientData,
       ).playerEntityLocal = messageHandler.getLocalEntity(player.actorEntity)
     }

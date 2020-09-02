@@ -50,9 +50,9 @@ export function interpolateRemoteEntitiesSystem(world: World) {
   for (const [, [interpolationBuffer, renderTransform]] of toInterpolate(
     world,
   )) {
-    const m_clientTransform = world.getMutableComponent(renderTransform)
+    const m_clientTransform = world.getObservedComponent(renderTransform)
 
-    // const mutInterpolationBuffer = world.getMutableComponent(
+    // const mutInterpolationBuffer = world.getObservedComponent(
     //   interpolationBuffer,
     // )
 

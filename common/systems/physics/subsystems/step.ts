@@ -66,7 +66,7 @@ export const stepPhysicsSubsystem = (world: World) => {
 
   for (const [entity, [_body]] of bodies(world)) {
     const body = bodiesByEntity.get(entity)
-    const m_body = world.getMutableComponent(_body)
+    const m_body = world.getObservedComponent(_body)
     const {
       position: { x, y, z },
       velocity: { x: vx, y: vy, z: vz },

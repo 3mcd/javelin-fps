@@ -40,7 +40,7 @@ export const reconcile = (
 
     const serverTick = meta as number
 
-    messageHandler.applyUnreliableUpdate(update, world)
+    messageHandler.handleUnreliableUpdate(update, world)
 
     let i = 0
 
@@ -66,14 +66,14 @@ export const reconcile = (
   }
 
   const playerBody = world.getComponent(playerEntityLocal, Body)
-  const playerClientTransform = world.getMutableComponent(
+  const playerClientTransform = world.getObservedComponent(
     world.getComponent(playerEntityLocal, ClientTransform),
   )
 
   // Copy reconciled player body state over to client transform (for rendering)
   Object.assign(playerClientTransform, playerBody)
 
-  world.getMutableComponent(
+  world.getObservedComponent(
     clientData,
   ).serverLastProcessedInput = serverLastProcessedInput
 }

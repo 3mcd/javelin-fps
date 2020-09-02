@@ -18,7 +18,7 @@ export const applyPlayerInputSystem = (world: World, clock: Clock) => {
       continue
     }
 
-    const mutInputBuffer = world.getMutableComponent(inputBuffer)
+    const mutInputBuffer = world.getObservedComponent(inputBuffer)
 
     if (mutInputBuffer.buffering) {
       if (inputs.length >= targetInputBufferLength) {
