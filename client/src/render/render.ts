@@ -19,8 +19,9 @@ import {
   sRGBEncoding,
   Vector3,
   WebGLRenderer,
+  BoxBufferGeometry,
 } from "three"
-import { Body, getInputBuffer, getServerDetails } from "../../../common"
+import { getInputBuffer, getServerDetails, Sphere, Box } from "../../../common"
 import { ClientTransform } from "../components"
 import { getClientData } from "../queries"
 import { createSky } from "./objects/sky"
@@ -151,9 +152,25 @@ const objectsByEntity = new Map<number, Object3D>()
 const tmpPosition = new Vector3()
 const tmpRotation = new Quaternion()
 
+function buildEntityGeometry(entity: number, world: World) {
+  const sphere = world.tryGetComponent(entity, Sphere)
+
+  if (sphere) {
+    return new SphereBufferGeometry(sphere.radius, 32, 32)
+  }
+
+  const box = world.tryGetComponent(entity, Box)
+
+  if (box) {
+    return new BoxBufferGeometry(box.width, box.height, box.depth)
+  }
+
+  throw new Error("Can't create geometry for entity.")
+}
+
 export function maintainRenderSceneSystem(world: World) {
   for (const [entity] of transformsCreated(world)) {
-    const geometry = new SphereBufferGeometry(0.5, 32, 32)
+    const geometry = buildEntityGeometry(entity, world)
     const material = new MeshLambertMaterial({
       color: 0xaa00dd,
     })

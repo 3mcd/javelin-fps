@@ -1,11 +1,11 @@
 import { changed, query, World } from "@javelin/ecs"
 import { createStackPool } from "@javelin/ecs/dist/esm/pool/stack_pool"
 import { Quaternion } from "three"
-import { Body, getServerDetails } from "../../../common"
+import { Transform, getServerDetails } from "../../../common"
 import { InterpolationBuffer, ClientTransform } from "../components"
 
 const toInterpolate = query(InterpolationBuffer, ClientTransform)
-const toUpdate = query(InterpolationBuffer, changed(Body))
+const toUpdate = query(InterpolationBuffer, changed(Transform))
 
 const tempQuatFrom = new Quaternion()
 const tempQuatTo = new Quaternion()

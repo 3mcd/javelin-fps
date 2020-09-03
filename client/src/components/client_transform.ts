@@ -13,4 +13,22 @@ export const ClientTransform = createComponentType({
     qz: number,
     qw: number,
   },
+  initialize: (
+    clientTransform,
+    x: number = 0,
+    y: number = 0,
+    z: number = 0,
+    qx: number = 0,
+    qy: number = 0,
+    qz: number = 0,
+    qw: number = 1,
+  ) => {
+    clientTransform.x = x
+    clientTransform.y = y
+    clientTransform.z = z
+    clientTransform.qx = qx
+    clientTransform.qy = qy
+    clientTransform.qz = qz
+    clientTransform.qw = qw
+  },
 })

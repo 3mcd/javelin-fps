@@ -3,9 +3,9 @@ import { Clock, createHrtimeLoop } from "@javelin/hrtime-loop"
 import { createMessageProducer, UpdateUnreliable } from "@javelin/net"
 import { decode, encode } from "@msgpack/msgpack"
 import { Server } from "@web-udp/server"
+import dotenv from "dotenv"
 import { createServer } from "http"
 import {
-  Body,
   ConnectionMetadata,
   ConnectionType,
   InputBuffer,
@@ -15,11 +15,15 @@ import {
   ServerDetails,
   Simulate,
   stepPhysicsSubsystem,
+  Transform,
+  Velocity,
+  Sphere,
+  Box,
 } from "../../common"
 import { createClient } from "./client"
 import { applyPlayerInputSystem } from "./systems"
 import { Client, ClientState } from "./types"
-import dotenv from "dotenv"
+import { createMap } from "./maps"
 
 dotenv.config()
 
@@ -35,26 +39,35 @@ if (Number.isNaN(port)) throw new Error("Invalid PORT")
 if (Number.isNaN(tickRate)) throw new Error("Invalid TICK_RATE")
 if (Number.isNaN(sendRate)) throw new Error("Invalid SEND_RATE")
 
-const components = [
-  { type: Body, priority: 1 },
+const networkedComponents = [
+  { type: Transform, priority: 1 },
+  { type: Velocity, priority: 1 },
+  { type: Sphere },
+  { type: Box },
   { type: Player },
   { type: ServerDetails },
 ]
 
 const messageProducer = createMessageProducer({
-  components: components,
+  components: networkedComponents,
   updateInterval: (1 / sendRate) * 1000,
   updateSize: 1000,
 })
 
 const world = createWorld({
-  componentTypes: [...components.map(c => c.type), InputBuffer, Simulate],
+  componentTypes: [
+    ...networkedComponents.map(c => c.type),
+    InputBuffer,
+    Simulate,
+  ],
   systems: [
     maintainPhysicsSubsystem,
     applyPlayerInputSystem,
     stepPhysicsSubsystem,
   ],
 })
+
+createMap(world)
 
 world.spawn(world.component(ServerDetails, tickRate, sendRate))
 world.tick({ dt: 0, tick: 0, now: 0 })
@@ -100,8 +113,10 @@ const isConnectionMetadata = (metadata: any): metadata is ConnectionMetadata =>
 
 const createClientEntities = (client: Client) => {
   const actor = world.spawn(
-    world.component(Body, Math.random() * 10, Math.random() * 10, 10),
+    world.component(Transform, Math.random() * 10, Math.random() * 10, 10),
+    world.component(Velocity),
     world.component(Simulate),
+    world.component(Sphere),
   )
   const player = world.spawn(
     world.component(Player, client.id, actor),

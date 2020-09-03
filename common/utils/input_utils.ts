@@ -1,6 +1,6 @@
 import { Topic, World } from "@javelin/ecs"
 import { Quaternion, Vec3 } from "cannon-es"
-import { Body } from "../components"
+import { Transform } from "../components"
 import { jump, move, PhysicsCommand, rotate } from "../topics"
 
 const AXIS_X = new Vec3(1, 0, 0)
@@ -18,13 +18,13 @@ export const dispatchPhysicsCommandsFromInput = (
   const [up, right, down, left, _jump, pointerX, pointerY] = input
   const lon = up - down
   const lat = right - left
-  const body = world.getComponent(entity, Body)
+  const tnrasform = world.getComponent(entity, Transform)
 
   if (lon || lat) {
     topic.pushImmediate(move(entity, lat * 0.5, lon * 0.5))
   }
 
-  if (body.grounded && _jump) {
+  if (tnrasform.grounded && _jump) {
     topic.pushImmediate(jump(entity, 2))
   }
 

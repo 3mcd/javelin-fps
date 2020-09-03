@@ -1,7 +1,7 @@
 import { World } from "@javelin/ecs"
 import { MessageHandler, UpdateUnreliable } from "@javelin/net"
 import {
-  Body,
+  Transform,
   dispatchPhysicsCommandsFromInput,
   getInputBuffer,
   physicsTopic,
@@ -65,13 +65,13 @@ export const reconcile = (
     serverLastProcessedInput = serverTick
   }
 
-  const playerBody = world.getComponent(playerEntityLocal, Body)
+  const playerTransform = world.getComponent(playerEntityLocal, Transform)
   const playerClientTransform = world.getObservedComponent(
     world.getComponent(playerEntityLocal, ClientTransform),
   )
 
   // Copy reconciled player body state over to client transform (for rendering)
-  Object.assign(playerClientTransform, playerBody)
+  Object.assign(playerClientTransform, playerTransform)
 
   world.getObservedComponent(
     clientData,

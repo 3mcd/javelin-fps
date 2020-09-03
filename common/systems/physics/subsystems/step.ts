@@ -1,33 +1,33 @@
 import { query, World } from "@javelin/ecs"
 import { Vec3 } from "cannon-es"
-import { Body as BodyComponent, Simulate } from "../../../components"
+import { Simulate, Transform, Velocity } from "../../../components"
 import { getServerDetails } from "../../../queries"
 import {
   physicsCommandPool,
   PhysicsCommandType,
   physicsTopic,
 } from "../../../topics"
-import { isGrounded } from "../physics_utils"
+import { isGrounded, syncVelocity, syncTransform } from "../physics_utils"
 import { bodiesByEntity, simulation } from "../simulation"
 
-const bodies = query(BodyComponent, Simulate)
+const bodies = query(Transform, Simulate)
 
 const tmpVelocity = new Vec3()
 
 export const stepPhysicsSubsystem = (world: World) => {
   const { tickRate } = getServerDetails(world)
 
-  for (const [
-    entity,
-    [{ x, y, z, vx, vy, vz, qx, qy, qz, qw, avx, avy, avz }],
-  ] of bodies(world)) {
+  for (const [entity, [transform]] of bodies(world)) {
     const body = bodiesByEntity.get(entity)
+    const velocity = world.tryGetComponent(entity, Velocity)
 
-    body.position.set(x, y, z)
-    body.velocity.set(vx, vy, vz)
-    body.quaternion.set(qx, qy, qz, qw)
-    body.angularVelocity.set(avx, avy, avz)
+    syncTransform(body, transform)
 
+    if (velocity) {
+      syncVelocity(body, velocity)
+    }
+
+    // Linear damping
     body.velocity.x *= 0.8
     body.velocity.y *= 0.8
   }
@@ -64,9 +64,8 @@ export const stepPhysicsSubsystem = (world: World) => {
 
   simulation.step(1 / tickRate)
 
-  for (const [entity, [_body]] of bodies(world)) {
+  for (const [entity, [transform]] of bodies(world)) {
     const body = bodiesByEntity.get(entity)
-    const m_body = world.getObservedComponent(_body)
     const {
       position: { x, y, z },
       velocity: { x: vx, y: vy, z: vz },
@@ -74,19 +73,29 @@ export const stepPhysicsSubsystem = (world: World) => {
       angularVelocity: { x: avx, y: avy, z: avz },
     } = body
 
-    m_body.x = x
-    m_body.y = y
-    m_body.z = z
-    m_body.qx = qx
-    m_body.qy = qy
-    m_body.qz = qz
-    m_body.qw = qw
-    m_body.vx = vx
-    m_body.vy = vy
-    m_body.vz = vz
-    m_body.avx = avx
-    m_body.avy = avy
-    m_body.avz = avz
-    m_body.grounded = isGrounded(body, simulation)
+    const m_transform = world.getObservedComponent(transform)
+
+    m_transform.x = x
+    m_transform.y = y
+    m_transform.z = z
+    m_transform.qx = qx
+    m_transform.qy = qy
+    m_transform.qz = qz
+    m_transform.qw = qw
+
+    const velocity = world.tryGetComponent(entity, Velocity)
+
+    if (velocity) {
+      const m_velocity = world.getObservedComponent(velocity)
+
+      m_velocity.x = vx
+      m_velocity.y = vy
+      m_velocity.z = vz
+      m_velocity.ax = avx
+      m_velocity.ay = avy
+      m_velocity.az = avz
+    }
+
+    m_transform.grounded = isGrounded(body, simulation)
   }
 }

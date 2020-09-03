@@ -4,7 +4,6 @@ import { decode } from "@msgpack/msgpack"
 import { Client, Connection, RTCConnectionProvider } from "@web-udp/client"
 import { WebSocketTransport } from "@web-udp/protocol"
 import {
-  Body,
   ClientData,
   InputBuffer,
   maintainPhysicsSubsystem,
@@ -12,9 +11,13 @@ import {
   Player,
   ServerDetails,
   Simulate,
+  Sphere,
   stepPhysicsSubsystem,
+  Transform,
+  Velocity,
+  Box,
 } from "../../common"
-import { InterpolationBuffer, ClientTransform } from "./components"
+import { ClientTransform, InterpolationBuffer } from "./components"
 import { API_HOST } from "./config"
 import { createLoop } from "./loop"
 import { getConnectionOptions } from "./net"
@@ -68,8 +71,26 @@ async function main() {
     },
   })
 
+  const LOG_BANDWIDTH_INTERVAL_MS = 1000
+
+  let prevTransferLogTime = 0
+  let bytes = 0
+
+  function logDataTransferRate(arrayBuffer: ArrayBuffer) {
+    const now = performance.now()
+
+    bytes += arrayBuffer.byteLength
+
+    if (now - prevTransferLogTime >= LOG_BANDWIDTH_INTERVAL_MS) {
+      console.log(`${bytes / 1000} kb/s`)
+      prevTransferLogTime = now
+      bytes = 0
+    }
+  }
+
   const handleMessage = (data: any) => {
     const messages = decode(data) as JavelinMessage[]
+    logDataTransferRate(data)
     messages.forEach(messageHandler.push)
   }
 
@@ -92,7 +113,7 @@ async function main() {
   setupConnection(connections.reliable)
   setupConnection(connections.unreliable)
 
-  const bodiesCreated = query(attached(Body))
+  const bodiesCreated = query(attached(Transform))
   const initializeLocalEntitiesSystem = (world: World) => {
     const clientData = getClientData(world)
     const player = getClientPlayer(world)
@@ -107,17 +128,19 @@ async function main() {
       ).playerEntityLocal = messageHandler.getLocalEntity(player.actorEntity)
     }
 
-    for (const [entity] of bodiesCreated(world)) {
+    for (const [entity, [{ x, y, z, qx, qy, qz, qw }]] of bodiesCreated(
+      world,
+    )) {
       if (entity === clientData.playerEntityLocal) {
         world.attach(
           entity,
-          world.component(ClientTransform),
+          world.component(ClientTransform, x, y, z, qx, qy, qz, qw),
           world.component(Simulate),
         )
       } else {
         world.attach(
           entity,
-          world.component(ClientTransform),
+          world.component(ClientTransform, x, y, z, qx, qy, qz, qw),
           world.component(InterpolationBuffer),
         )
       }
@@ -135,14 +158,17 @@ async function main() {
       maintainRenderSceneSystem,
     ],
     componentTypes: [
-      Body,
+      Box,
+      Transform,
       ClientData,
+      ClientTransform,
       InputBuffer,
       InterpolationBuffer,
       Player,
       ServerDetails,
       Simulate,
-      ClientTransform,
+      Sphere,
+      Velocity,
     ],
   })
 
