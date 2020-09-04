@@ -50,12 +50,6 @@ export function interpolateRemoteEntitiesSystem(world: World) {
   for (const [, [interpolationBuffer, renderTransform]] of toInterpolate(
     world,
   )) {
-    const m_clientTransform = world.getObservedComponent(renderTransform)
-
-    // const mutInterpolationBuffer = world.getObservedComponent(
-    //   interpolationBuffer,
-    // )
-
     // Drop older positions.
     while (
       interpolationBuffer.buffer.length >= 2 &&
@@ -78,19 +72,19 @@ export function interpolateRemoteEntitiesSystem(world: World) {
       const dt = t1 - t0
 
       // Interpolate position
-      m_clientTransform.x = x0 + ((x1 - x0) * dr) / dt
-      m_clientTransform.y = y0 + ((y1 - y0) * dr) / dt
-      m_clientTransform.z = z0 + ((z1 - z0) * dr) / dt
+      renderTransform.x = x0 + ((x1 - x0) * dr) / dt
+      renderTransform.y = y0 + ((y1 - y0) * dr) / dt
+      renderTransform.z = z0 + ((z1 - z0) * dr) / dt
 
       // Interpolate rotation
       tempQuatTo.set(qx0, qy0, qz0, qw0)
       tempQuatFrom.set(qx1, qy1, qz1, qw1)
       tempQuatTo.slerp(tempQuatFrom, dr / dt)
 
-      m_clientTransform.qx = tempQuatTo.x
-      m_clientTransform.qy = tempQuatTo.y
-      m_clientTransform.qz = tempQuatTo.z
-      m_clientTransform.qw = tempQuatTo.w
+      renderTransform.qx = tempQuatTo.x
+      renderTransform.qy = tempQuatTo.y
+      renderTransform.qz = tempQuatTo.z
+      renderTransform.qw = tempQuatTo.w
     }
   }
 }

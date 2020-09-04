@@ -127,7 +127,13 @@ export const createSampleInputSystem = (connection: Connection) => (
       physicsTopic,
       world,
     )
+
     inputBuffer.inputs.push(input)
+
+    while (inputBuffer.inputs.length > 20) {
+      inputBuffer.inputs.shift()
+    }
+
     connection.send(encode(input))
   }
 }

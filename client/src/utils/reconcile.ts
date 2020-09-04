@@ -65,15 +65,11 @@ export const reconcile = (
     serverLastProcessedInput = serverTick
   }
 
-  const playerTransform = world.getComponent(playerEntityLocal, Transform)
-  const playerClientTransform = world.getObservedComponent(
+  // Copy reconciled player body state over to client transform (for rendering)
+  Object.assign(
     world.getComponent(playerEntityLocal, ClientTransform),
+    world.getComponent(playerEntityLocal, Transform),
   )
 
-  // Copy reconciled player body state over to client transform (for rendering)
-  Object.assign(playerClientTransform, playerTransform)
-
-  world.getObservedComponent(
-    clientData,
-  ).serverLastProcessedInput = serverLastProcessedInput
+  clientData.serverLastProcessedInput = serverLastProcessedInput
 }

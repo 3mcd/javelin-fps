@@ -121,9 +121,9 @@ async function main() {
     }
 
     if (player.actorEntity !== -1) {
-      world.getObservedComponent(
-        clientData,
-      ).playerEntityLocal = messageHandler.getLocalEntity(player.actorEntity)
+      clientData.playerEntityLocal = messageHandler.getLocalEntity(
+        player.actorEntity,
+      )
     }
 
     for (const [entity, [{ x, y, z, qx, qy, qz, qw }]] of bodiesCreated(

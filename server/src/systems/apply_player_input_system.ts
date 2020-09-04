@@ -18,11 +18,9 @@ export const applyPlayerInputSystem = (world: World, clock: Clock) => {
       continue
     }
 
-    const mutInputBuffer = world.getObservedComponent(inputBuffer)
-
-    if (mutInputBuffer.buffering) {
+    if (inputBuffer.buffering) {
       if (inputs.length >= targetInputBufferLength) {
-        mutInputBuffer.buffering = false
+        inputBuffer.buffering = false
       } else {
         continue
       }
@@ -33,36 +31,36 @@ export const applyPlayerInputSystem = (world: World, clock: Clock) => {
     if (inputs.length === 0) {
       let growFactor = 1
 
-      if (mutInputBuffer.lastBufferGrow > 0) {
-        growFactor = Math.min(
-          15,
-          Math.ceil(
-            (16.6666 * 1000) / (clock.now - mutInputBuffer.lastBufferGrow),
-          ),
+      if (inputBuffer.lastBufferGrow > 0) {
+        growFactor = Math.ceil(
+          (16.6666 * 1000) / (clock.now - inputBuffer.lastBufferGrow),
         )
       }
 
-      mutInputBuffer.targetInputBufferLength += growFactor
-      mutInputBuffer.lastBufferGrow = clock.now
-      mutInputBuffer.buffering = true
+      inputBuffer.targetInputBufferLength = Math.min(
+        growFactor + inputBuffer.targetInputBufferLength,
+        20,
+      )
+      inputBuffer.lastBufferGrow = clock.now
+      inputBuffer.buffering = true
       input = lastInput
     } else {
       if (
-        inputs.length >= mutInputBuffer.targetInputBufferLength &&
-        clock.now - mutInputBuffer.lastBufferShrink > 1000
+        inputs.length >= inputBuffer.targetInputBufferLength &&
+        clock.now - inputBuffer.lastBufferShrink > 1000
       ) {
-        mutInputBuffer.targetInputBufferLength = Math.max(
+        inputBuffer.targetInputBufferLength = Math.max(
           1,
-          mutInputBuffer.targetInputBufferLength - 1,
+          inputBuffer.targetInputBufferLength - 1,
         )
-        mutInputBuffer.lastBufferShrink = clock.now
+        inputBuffer.lastBufferShrink = clock.now
       }
       input = inputs.shift()
     }
 
     if (input) {
       dispatchPhysicsCommandsFromInput(input, actorEntity, physicsTopic, world)
-      mutInputBuffer.lastInput = input
+      inputBuffer.lastInput = input
     }
   }
 }
