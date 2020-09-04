@@ -19,11 +19,12 @@ import {
   Velocity,
   Sphere,
   Box,
+  Mass,
 } from "../../common"
 import { createClient } from "./client"
 import { applyPlayerInputSystem } from "./systems"
 import { Client, ClientState } from "./types"
-import { createMap } from "./maps"
+import { createArenaMap } from "./maps"
 
 dotenv.config()
 
@@ -46,6 +47,7 @@ const networkedComponents = [
   { type: Box },
   { type: Player },
   { type: ServerDetails },
+  { type: Mass },
 ]
 
 const messageProducer = createMessageProducer({
@@ -67,7 +69,7 @@ const world = createWorld({
   ],
 })
 
-createMap(world)
+createArenaMap(world)
 
 world.spawn(world.component(ServerDetails, tickRate, sendRate))
 world.tick({ dt: 0, tick: 0, now: 0 })
@@ -117,6 +119,7 @@ const createClientEntities = (client: Client) => {
     world.component(Velocity),
     world.component(Simulate),
     world.component(Sphere),
+    world.component(Mass, 10),
   )
   const player = world.spawn(
     world.component(Player, client.id, actor),

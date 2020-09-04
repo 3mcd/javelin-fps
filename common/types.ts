@@ -15,6 +15,7 @@ export enum ConnectionType {
 export enum ComponentTypes {
   // common
   Box,
+  Mass,
   Player,
   ServerDetails,
   Simulate,
@@ -22,7 +23,6 @@ export enum ComponentTypes {
   Transform,
   Velocity,
   // client
-  BodyBuffer,
   ClientData,
   ClientTransform,
   InputBuffer,

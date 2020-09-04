@@ -16,6 +16,7 @@ import {
   Transform,
   Velocity,
   Box,
+  Mass,
 } from "../../common"
 import { ClientTransform, InterpolationBuffer } from "./components"
 import { API_HOST } from "./config"
@@ -27,7 +28,7 @@ import {
   createSampleInputSystem,
   interpolateRemoteEntitiesSystem,
 } from "./systems"
-import { ms, reconcile } from "./utils"
+import { reconcile } from "./utils"
 
 const clientId = Math.random().toString()
 const transport = new WebSocketTransport(new WebSocket(`ws://${API_HOST}`))
@@ -55,10 +56,7 @@ async function main() {
     }),
     transport,
   })
-
-  // Wait a brief duration before connecting.
-  await ms(500)
-
+  1
   const connectionOptions = getConnectionOptions(clientId)
   const connections = {
     reliable: await client.connect(connectionOptions.reliable),
@@ -142,6 +140,7 @@ async function main() {
           entity,
           world.component(ClientTransform, x, y, z, qx, qy, qz, qw),
           world.component(InterpolationBuffer),
+          world.component(Simulate),
         )
       }
     }
@@ -159,15 +158,16 @@ async function main() {
     ],
     componentTypes: [
       Box,
-      Transform,
       ClientData,
       ClientTransform,
       InputBuffer,
       InterpolationBuffer,
+      Mass,
       Player,
       ServerDetails,
       Simulate,
       Sphere,
+      Transform,
       Velocity,
     ],
   })

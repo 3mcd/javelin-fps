@@ -1,6 +1,6 @@
 import { query, World } from "@javelin/ecs"
 import { Vec3 } from "cannon-es"
-import { Simulate, Transform, Velocity } from "../../../components"
+import { Simulate, Transform, Velocity, Sphere } from "../../../components"
 import { getServerDetails } from "../../../queries"
 import {
   physicsCommandPool,
@@ -27,9 +27,11 @@ export const stepPhysicsSubsystem = (world: World) => {
       syncVelocity(body, velocity)
     }
 
-    // Linear damping
-    body.velocity.x *= 0.8
-    body.velocity.y *= 0.8
+    // Linear damping of player actors
+    if (world.tryGetComponent(entity, Sphere)) {
+      body.velocity.x *= 0.8
+      body.velocity.y *= 0.8
+    }
   }
 
   for (const command of physicsTopic) {

@@ -1,6 +1,6 @@
 import { attached, detached, query, World } from "@javelin/ecs"
 import { Body } from "cannon-es"
-import { Simulate, Velocity, Transform } from "../../../components"
+import { Simulate, Velocity, Transform, Mass } from "../../../components"
 import { bodiesByEntity, simulation } from "../simulation"
 import { syncVelocity, syncTransform, buildEntityShape } from "../physics_utils"
 
@@ -11,7 +11,7 @@ export const maintainPhysicsSubsystem = (world: World) => {
   for (const [entity, [, transform]] of bodiesCreated(world)) {
     const velocity = world.tryGetComponent(entity, Velocity)
     const body = new Body({
-      mass: velocity ? 1 : 0,
+      mass: world.tryGetComponent(entity, Mass)?.value || 0,
       shape: buildEntityShape(entity, world),
     })
 
