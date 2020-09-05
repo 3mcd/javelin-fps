@@ -201,17 +201,24 @@ const tick = (clock: Clock) => {
       continue
     }
 
-    const inputBuffer = world.tryGetComponent(client.playerEntity, InputBuffer)
+    try {
+      const inputBuffer = world.tryGetComponent(
+        client.playerEntity,
+        InputBuffer,
+      )
 
-    if (!inputBuffer) {
-      continue
+      if (!inputBuffer) {
+        continue
+      }
+
+      for (const message of client.messages) {
+        inputBuffer.inputs.push(message as number[])
+      }
+
+      mutableEmpty(client.messages)
+    } catch (err) {
+      // Client may not be fully initialized yet.
     }
-
-    for (const message of client.messages) {
-      inputBuffer.inputs.push(message as number[])
-    }
-
-    mutableEmpty(client.messages)
   }
 
   world.tick(clock)
