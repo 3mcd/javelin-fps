@@ -75,29 +75,25 @@ export const stepPhysicsSubsystem = (world: World) => {
       angularVelocity: { x: avx, y: avy, z: avz },
     } = body
 
-    const m_transform = world.getObservedComponent(transform)
+    transform.x = x
+    transform.y = y
+    transform.z = z
+    transform.qx = qx
+    transform.qy = qy
+    transform.qz = qz
+    transform.qw = qw
 
-    m_transform.x = x
-    m_transform.y = y
-    m_transform.z = z
-    m_transform.qx = qx
-    m_transform.qy = qy
-    m_transform.qz = qz
-    m_transform.qw = qw
+    transform.grounded = isGrounded(body, simulation)
 
     const velocity = world.tryGetComponent(entity, Velocity)
 
     if (velocity) {
-      const m_velocity = world.getObservedComponent(velocity)
-
-      m_velocity.x = vx
-      m_velocity.y = vy
-      m_velocity.z = vz
-      m_velocity.ax = avx
-      m_velocity.ay = avy
-      m_velocity.az = avz
+      velocity.x = vx
+      velocity.y = vy
+      velocity.z = vz
+      velocity.ax = avx
+      velocity.ay = avy
+      velocity.az = avz
     }
-
-    m_transform.grounded = isGrounded(body, simulation)
   }
 }
