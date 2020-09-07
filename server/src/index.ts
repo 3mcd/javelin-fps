@@ -236,9 +236,11 @@ const tick = (clock: Clock) => {
         client.state = ClientState.Initialized
         break
       case ClientState.Initialized: {
-        client.connections[ConnectionType.Reliable].send(
-          messagesReliableEncoded,
-        )
+        if (messagesReliable.length > 0) {
+          client.connections[ConnectionType.Reliable].send(
+            messagesReliableEncoded,
+          )
+        }
 
         const inputBuffer = world.getComponent(client.playerEntity, InputBuffer)
 
